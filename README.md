@@ -119,7 +119,7 @@ resource "random_password" "master" {
 }
 
 module "database" {
-  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.0"
+  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.1"
 
   project_name = "acme"
   environment  = "staging"
@@ -138,7 +138,7 @@ module "database" {
 
 ```hcl
 module "database" {
-  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.0"
+  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.1"
 
   project_name = "acme"
   environment  = "production"
@@ -175,7 +175,7 @@ An instance runs one engine, so this is two instances. `name` keeps their identi
 
 ```hcl
 module "postgres" {
-  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.0"
+  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.1"
 
   project_name = "acme"
   environment  = "production"
@@ -185,7 +185,7 @@ module "postgres" {
 }
 
 module "mysql" {
-  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.0"
+  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.1"
 
   project_name = "acme"
   environment  = "production"
@@ -201,7 +201,7 @@ module "mysql" {
 
 ```hcl
 module "database" {
-  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.0"
+  source = "git::https://github.com/iamwonodi/terraform-aws-rds-instance.git?ref=v1.0.1"
 
   create_security_group = false
   security_group_ids    = [aws_security_group.database.id]
@@ -467,8 +467,13 @@ This module follows Semantic Versioning.
 Current release:
 
 ```text
-v1.0.0
+v1.0.1
 ```
+
+`v1.0.1` is a **patch** release relative to `v1.0.0`. It fixes the first plan of a fresh environment: the security-group ingress rules (`aws_vpc_security_group_ingress_rule.from_security_group`) were keyed by the IDs passed in, which are unknown until apply when those resources are created in the same run, so the plan failed with `Invalid for_each argument`. They are now keyed by position in the list. No input or output changed; listing the same ID twice is now refused rather than silently merged.
+
+**Upgrading an environment already applied with `v1.0.0`:** the plan re-creates those resources once under their new keys. To keep them in place, add a `moved` block per entry in the calling configuration, for example `moved { from = module.<name>.<resource>["<id>"]  to = module.<name>.<resource>["0"] }`. Keep the list's order stable afterwards: reordering it re-creates the moved entries.
+
 
 The `v1.0.0` release provides:
 
